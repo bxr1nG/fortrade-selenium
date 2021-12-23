@@ -49,36 +49,37 @@ describe('Fortrade tests', async function () {
 		await this.homePage.clickCloseWindowButton();
 	});
 
-	// it('Should change trade bid and confirm', async () => {
-	// 	let bid = '100000000';
-	// 	await this.homePage.chart.clickBuyButton();
-	// 	this.loginPage.log('- Fill bid field');
-	// 	await this.openTicketPage.fillAmountField(bid);
-	// 	this.loginPage.log('- Check if bid changed');
-	// 	await this.openTicketPage.checkIsAmountChanged(bid);
-	// 	this.loginPage.log('- Make bid');
-	// 	await this.openTicketPage.clickAcceptButton(true);
-	// 	await this.homePage.clickCloseAlertButton();
-	// });
+	it('Should change trade bid and confirm', async () => {
+		let bid = '100000000';
+		await this.homePage.chart.clickBuyButton();
+		this.loginPage.log('- Fill bid field');
+		await this.openTicketPage.fillAmountField(bid);
+		this.loginPage.log('- Check if bid changed');
+		await this.openTicketPage.checkIsAmountChanged(bid);
+		this.loginPage.log('- Make bid');
+		await this.openTicketPage.clickAcceptButton(true);
+		await this.homePage.clickCloseAlertButton();
+	});
 
-	// it('Should prohibit trade acception', async () => {
-	// 	await this.homePage.chart.clickBuyButton();
-	// 	this.loginPage.log('- Fill bid field');
-	// 	await this.openTicketPage.fillAmountField('1000');
-	// 	this.loginPage.log('- Try to buy with no money');
-	// 	await this.openTicketPage.clickAcceptButton(true);
-	// 	this.loginPage.log('- Close buy window');
-	// 	await this.homePage.clickCloseWindowButton();
-	// 	await this.homePage.clickCloseAlertButton();
-	// });
+	it('Should prohibit trade acception', async () => {
+		await this.homePage.chart.clickBuyButton();
+		this.loginPage.log('- Fill bid field');
+		await this.openTicketPage.fillAmountField('1000');
+		this.loginPage.log('- Try to buy with no money');
+		await this.openTicketPage.clickAcceptButton(false);
+		this.loginPage.log('- Close buy window');
+		await this.homePage.clickCloseWindowButton();
+		await this.homePage.clickCloseAlertButton();
+	});
 
-	// it('Should close trade', async () => {
-	// 	this.loginPage.log('- Close last trade');
-	// 	await this.homePage.trades.clickCloseLastTradeButton();
-	// 	this.loginPage.log('- Submit close');
-	// 	await this.homePage.trades.clickSubmitCloseTradeButton();
-	// 	await this.homePage.trades.checkCloseMessage();
-	// });
+	it('Should close trade', async () => {
+		this.loginPage.log('- Close last trade');
+		await this.homePage.trades.clickCloseLastTradeButton();
+		this.loginPage.log('- Submit close');
+		await this.homePage.trades.clickSubmitCloseTradeButton();
+		await this.homePage.clickCloseAlertButton();
+		// await this.homePage.trades.checkCloseMessage();
+	});
 
 	it('Should open trade', async () => {
 		this.loginPage.log('- Open new trade');

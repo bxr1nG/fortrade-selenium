@@ -31,7 +31,7 @@ class OpenTicketPage extends PageBase {
 	async clickAcceptButton(expectedValue) {
 		let title = await this.getTitle();
 		await this.clickWhenClickableByCss('.ticketActionButton');
-		await this.checkAlertMessage(title, expectedValue);
+		if (expectedValue) await this.checkAlertMessage(title, expectedValue);
 	}
 
 	async clickSomewere() {
@@ -51,8 +51,8 @@ class OpenTicketPage extends PageBase {
 
 	async checkAlertMessage(title, expectedValue) {
 		let element = await this.waitForElementByCss('.row2', this.waitTimeout);
-		if (expectedValue)
-			assert.equal((await element.getText()).includes(title), expectedValue);
+
+		assert.equal((await element.getText()).includes(title), expectedValue);
 	}
 
 	async checkIsAmountChanged(expectedAmount) {
