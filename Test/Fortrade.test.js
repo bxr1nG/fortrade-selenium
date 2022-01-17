@@ -1,140 +1,106 @@
 const webdriver = require('selenium-webdriver');
-// const chrome = require('selenium-webdriver/chrome');
-// const chromedriver = require('chromedriver');
 const LoginPage = require('../Lib/Pages/LoginPage');
 const HomePage = require('../Lib/Pages/HomePage');
-const OpenTicketPage = require('../Lib/Pages/OpenTicketPage');
-const SettingsPage = require('../Lib/Pages/SettingsPage');
+
+const MainAssert = require('../Lib/Asserts/MainAssert');
 
 const driver = require('../Lib/Driver/ChromeDriver');
+const logger = require('../Lib/Addons/Logger');
+const StringCreator = require('../Lib/Addons/StringCreator');
 
-// chrome.setDefaultService(new chrome.ServiceBuilder(chromedriver.path).build());
-// const pref = new webdriver.logging.Preferences();
-// const driver = new webdriver.Builder()
-// 	.withCapabilities(webdriver.Capabilities.chrome())
-// 	.setLoggingPrefs(pref)
-// 	.build();
+let loginPage;
+let homePage;
+
+let mainAssert;
 
 describe('Fortrade tests', async function () {
-	process.on('unhandledRejection', error => {
-		throw error;
-	});
-
 	before(async () => {
-		this.loginPage = new LoginPage(webdriver, driver);
-		this.homePage = new HomePage(webdriver, driver);
-		this.openTicketPage = new OpenTicketPage(webdriver, driver);
-		this.settingsPage = new SettingsPage(webdriver, driver);
+		loginPage = new LoginPage(webdriver, driver, 10000, logger);
+		homePage = new HomePage(webdriver, driver, 10000, logger);
+
+		mainAssert = new MainAssert(webdriver, driver, 10000, logger);
+
+		await loginPage.loginToAccount();
 	});
 
-	it('Should login and add currency pair to Favorites', async () => {
-		this.loginPage.log('- Open login page');
-		await this.loginPage.navigate();
-		this.loginPage.log('- Log in to account');
-		await this.loginPage.logIntoAccount();
-		this.loginPage.log('- Open currency pair');
-		await this.homePage.menu.openCurrencyPairFromMain('AUDJPY');
-		this.loginPage.log('- Add currency pair to favorites');
-		await this.homePage.chart.clickAddToFavoritesButton();
-		await this.homePage.menu.goToFavorites();
-		await this.homePage.chart.checkMessage();
+	it('Should add a trading pair to favorites', async () => {
+		await homePage.openCurrencyPairFromMain('AUDJPY');
+		await homePage.addPairToFavorite();
+		await homePage.openCurrencyPairFromFavorites('AUDJPY');
+		await mainAssert.checkAdditionToFavorites('AUDJPY');
+		await homePage.addPairToFavorite();
 	});
 
-	it('Should raise wrong amount error', async () => {
-		this.loginPage.log('- Open buy window');
-		await this.homePage.chart.clickBuyButton();
-		this.loginPage.log('- Try buy zero');
-		await this.openTicketPage.fillAmountField('0');
-		await this.openTicketPage.checkErrorMessage();
-		await this.homePage.clickCloseWindowButton();
+	it('Should create a multichart', async () => {
+		await homePage.makeMultiChart();
+		await mainAssert.checkChartChanges();
+		await homePage.makeSingleChart();
 	});
 
-	it('Should change trade bid and confirm', async () => {
-		let bid = '100000000';
-		await this.homePage.chart.clickBuyButton();
-		this.loginPage.log('- Fill bid field');
-		await this.openTicketPage.fillAmountField(bid);
-		this.loginPage.log('- Check if bid changed');
-		await this.openTicketPage.checkIsAmountChanged(bid);
-		this.loginPage.log('- Make bid');
-		await this.openTicketPage.clickAcceptButton(true);
-		await this.homePage.clickCloseAlertButton();
+	it('Should change name in the settings', async () => {
+		let fisrtname = StringCreator.makeString();
+		let lastname = StringCreator.makeString();
+
+		await homePage.openProfileSettings();
+		await homePage.updateName(fisrtname, lastname);
+		await mainAssert.checkNameChanges(fisrtname);
 	});
 
-	it('Should prohibit trade acception', async () => {
-		await this.homePage.chart.clickBuyButton();
-		this.loginPage.log('- Fill bid field');
-		await this.openTicketPage.fillAmountField('1000');
-		this.loginPage.log('- Try to buy with no money');
-		await this.openTicketPage.clickAcceptButton(false);
-		this.loginPage.log('- Close buy window');
-		await this.homePage.clickCloseWindowButton();
-		await this.homePage.clickCloseAlertButton();
+	it('Should download closed trades excel file', async () => {
+		await homePage.downloadTrades();
+		await mainAssert.checkLastDownloadedFile();
 	});
 
-	it('Should close trade', async () => {
-		this.loginPage.log('- Close last trade');
-		await this.homePage.trades.clickCloseLastTradeButton();
-		this.loginPage.log('- Submit close');
-		await this.homePage.trades.clickSubmitCloseTradeButton();
-		await this.homePage.clickCloseAlertButton();
-		// await this.homePage.trades.checkCloseMessage();
+	it('Should change primary language of the site', async () => {
+		await homePage.changeLanguageToRussian();
+		await mainAssert.checkLanguageChange();
+		await homePage.changeLanguageToEnglish();
 	});
 
-	it('Should open trade', async () => {
-		this.loginPage.log('- Open new trade');
-		await this.homePage.chart.clickBuyButton();
-		await this.openTicketPage.fillAmountField('1000');
-		await this.openTicketPage.clickAcceptButton(true);
-		// await this.homePage.clickCloseWindowButton();
-		await this.homePage.clickCloseAlertButton();
+	it('Should reduce amount of bid', async () => {
+		await homePage.sleep(1000);
+		await homePage.openCurrencyPairFromFavorites('AUDCAD');
+		await homePage.makeBid(100000000);
+		await mainAssert.checkBidReduction(100000000);
+		await homePage.closeBidPopup();
 	});
 
-	it('Should duplicate trade', async () => {
-		this.loginPage.log('- Duplicate trade');
-		await this.homePage.trades.clickDuplicateLastTradeButton();
-		await this.homePage.trades.clickSubmitDuplicationButton();
-		this.loginPage.log('- Check if duplicated');
-		await this.homePage.trades.checkDuplicationMessage();
-		await this.homePage.clickCloseAlertButton();
+	it('Should forbid to place a bet', async () => {
+		await homePage.openCurrencyPairFromFavorites('AUDCAD');
+		await homePage.makeBid(0);
+		await mainAssert.checkBidError();
+		await homePage.closeBidPopup();
 	});
 
-	it('Should close all trades', async () => {
-		this.loginPage.log('- Close all active trades');
-		await this.homePage.trades.clickCloseAllTradesButton();
-		this.loginPage.log('- Submit close trades');
-		await this.homePage.trades.clickSubmitCloseTradeButton();
-		await this.homePage.trades.checkActiveTradesCount();
+	it('Should place a bet', async () => {
+		await homePage.openCurrentBets();
+		await homePage.openCurrencyPairFromFavorites('AUDCAD');
+		await homePage.makeBid(1000);
+		await homePage.submitBid();
+		await mainAssert.checkNewBid();
 	});
 
-	after(async () => {
-		this.loginPage.log('- Remove currency pair from favorites');
-		await this.homePage.chart.clickAddToFavoritesButton();
-		this.loginPage.log('- Checking Webdriver logs');
-		await this.loginPage.dumpWebDriverLogs();
+	it('Should close a bet', async () => {
+		await homePage.closeBet();
+		await mainAssert.checkNoBids();
 	});
 
-	// DON'T WORK
-	// it('Should change first and last name', async () => {
-	// 	await this.homePage.hamburger.clickOpenHamburgerMenuButton();
-	// 	await this.homePage.hamburger.clickOpenSettingsMenuButton();
-	// 	await this.homePage.hamburger.clickOpenAccountSettingsButton();
-	// 	await this.settingsPage.clickOpenNameSettingsButton();
-	// 	await this.settingsPage.changeProfileData();
-	// });
-
-	// after(async () => {
-	// 	await this.settingsPage.clickCloseSettingsButton();
-	// 	await this.settingsPage.clickCloseSettingsButton();
-	// });
+	it('Should close all bets', async () => {
+		await homePage.openCurrencyPairFromFavorites('AUDCAD');
+		await homePage.makeBid(1000);
+		await homePage.submitBid();
+		await homePage.sleep(4000);
+		await homePage.makeBid(1000);
+		await homePage.submitBid();
+		await homePage.closeAllBets();
+		await mainAssert.checkNoBids();
+	});
 
 	after(async () => driver.quit());
+
+	// NOT WORKING
+	// it('Should change password in the settings', async () => {
+	// 	await homePage.openPasswordSettings();
+	// 	await homePage.updatePassword();
+	// });
 });
-
-// it('Should make multichart', async () => {
-// 	await this.homePage.chart.checkMultichart();
-// });
-
-// after(async () => {
-// 	// await this.homePage.chart.clickMaximizeChartButton();
-// });

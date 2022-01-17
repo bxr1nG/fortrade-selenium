@@ -3,7 +3,28 @@ class ComponentBase {
 		this.webdriver = webdriver;
 		this.driver = driver;
 		this.waitTimeout = waitTimeout;
-		this.log = myVar => process.stdout.write(`${myVar}\n`);
+	}
+
+	async clearFieldByCss(cssName, waitTimeout = 10000) {
+		const element = await this.waitForElementByCss(cssName, waitTimeout);
+		await this.clearField(element, waitTimeout);
+	}
+
+	async clearFieldByName(elementName, waitTimeout = 10000) {
+		const element = await this.waitForElementByName(elementName, waitTimeout);
+		await this.clearField(element, waitTimeout);
+	}
+
+	async clearField(element, waitTimeout = 10000) {
+		await this.driver.wait(
+			this.webdriver.until.elementIsVisible(element),
+			waitTimeout
+		);
+		await this.driver.wait(
+			this.webdriver.until.elementIsEnabled(element),
+			waitTimeout
+		);
+		await element.clear();
 	}
 
 	async sendKeysWhenEnabledByCss(cssName, text, waitTimeout = 10000) {
@@ -116,20 +137,8 @@ class ComponentBase {
 		return result;
 	}
 
-	async dumpWebDriverLogs() {
-		await this.driver
-			.manage()
-			.logs()
-			.get('browser')
-			.then(logs => {
-				if (logs.length === 0) {
-					this.log('- No items found in webdriver log');
-				}
-				this.log(`- logs.length: ${logs.length}`);
-				logs.forEach(log => {
-					this.log(`- ${log.message}`);
-				});
-			});
+	sleep(ms) {
+		return new Promise(resolve => setTimeout(resolve, ms));
 	}
 }
 

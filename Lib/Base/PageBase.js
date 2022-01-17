@@ -1,14 +1,12 @@
 const ComponentBase = require('./ComponentBase');
 
 class PageBase extends ComponentBase {
-	constructor(webdriver, driver, targetUrl, waitTimeout = 10000) {
+	constructor(webdriver, driver, waitTimeout = 10000) {
 		super(webdriver, driver, waitTimeout);
-		this.targetUrl = targetUrl;
-		this.waitTimeout = waitTimeout;
 	}
 
-	async navigate() {
-		await this.driver.navigate().to(this.targetUrl);
+	async navigate(targetUrl) {
+		await this.driver.navigate().to(targetUrl);
 	}
 
 	async returnFromDestination() {

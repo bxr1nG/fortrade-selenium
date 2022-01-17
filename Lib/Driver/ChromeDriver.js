@@ -9,4 +9,6 @@ const driver = new webdriver.Builder()
 	.setLoggingPrefs(pref)
 	.build();
 
+driver.manage().window().maximize();
+
 module.exports = driver;

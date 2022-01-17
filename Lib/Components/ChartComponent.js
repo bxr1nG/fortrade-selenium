@@ -1,67 +1,54 @@
-const { assert } = require('chai');
+const PageBase = require('../Base/PageBase');
 
-const ComponentBase = require('../Base/ComponentBase');
+let pageBase;
 
-class ChartComponent extends ComponentBase {
-	constructor(webdriver, driver, waitTimeout = 20000) {
-		super(webdriver, driver, waitTimeout);
+class ChartComponent {
+	constructor(webdriver, driver, waitTimeout = 10000, logger) {
+		pageBase = new PageBase(webdriver, driver, waitTimeout);
+		this.webdriver = webdriver;
+		this.driver = driver;
+		this.logger = logger;
 	}
 
 	async clickAddToFavoritesButton() {
-		await this.clickWhenClickableByCss('#favIconMainChart', this.waitTimeout);
+		this.logger.info('Adding opened pair to favorites');
+
+		await pageBase.clickWhenClickableByCss(
+			'#favIconMainChart',
+			this.waitTimeout
+		);
 	}
 
 	async clickMultichartButton() {
-		await this.clickWhenClickableByCss('.multiCharts', this.waitTimeout);
+		this.logger.info('Opening multiple charts');
+
+		await pageBase.clickWhenClickableByCss('.multiCharts', this.waitTimeout);
 	}
 
 	async clickMaximizeChartButton() {
-		await this.clickWhenClickableByCss(
-			'div:nth-child(1) > .chartMini .resizeChart',
+		this.logger.info('Opening single chart');
+
+		await pageBase.sleep(1000);
+		let element = await pageBase.waitForElementByCss(
+			'div:nth-child(2) > .chartMini .resizeChart',
 			this.waitTimeout
 		);
-	}
-
-	async checkMessage() {
-		let element = await this.waitForElementByCss('.message', this.waitTimeout);
-
-		assert.equal(
-			await element.getText(),
-			'Instrument was added to your Favourites'
+		await this.driver.wait(
+			this.webdriver.until.elementIsEnabled(element),
+			this.waitTimeout
 		);
+		await this.driver.wait(
+			this.webdriver.until.elementIsVisible(element),
+			this.waitTimeout
+		);
+		await pageBase.clickWhenClickable(element, this.waitTimeout);
 	}
-
-	// async checkMultichart() {
-	// 	this.clickMultichartButton();
-
-	// 	let element = await this.waitForElementByCss(
-	// 		'div:nth-child(1) > .chartMini > .miniChartHeader',
-	// 		this.waitTimeout
-	// 	);
-
-	// 	let event = new MouseEvent('mouseover', {
-	// 		view: window,
-	// 		bubbles: true,
-	// 		cancelable: true,
-	// 	});
-
-	// 	await element.dispatchEvent(event);
-
-	// 	this.clickMaximizeChartButton();
-
-	// 	assert.equal(await element.Length, 2, 'Something wrong lol');
-	// }
 
 	async clickBuyButton() {
-		await this.clickWhenClickableByCss(
-			'.enableColorTransition:nth-child(3)',
-			this.waitTimeout
-		);
-	}
+		this.logger.info('Opening buy popup');
 
-	async clickSellButton() {
-		await this.clickWhenClickableByCss(
-			'.enableColorTransition:nth-child(1)',
+		await pageBase.clickWhenClickableByCss(
+			'#executionButtons div.buyButtonContainer.enableColorTransition.boxSizing',
 			this.waitTimeout
 		);
 	}

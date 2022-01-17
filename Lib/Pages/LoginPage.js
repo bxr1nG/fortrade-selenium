@@ -1,50 +1,17 @@
-const PageBase = require('../Base/PageBase');
+const LoginComponent = require('../Components/LoginComponent');
 
-class LoginPage extends PageBase {
-	constructor(
-		webdriver,
-		driver,
-		targetUrl = 'https://ready.fortrade.com/#login',
-		waitTimeout = 20000
-	) {
-		super(webdriver, driver, targetUrl, waitTimeout);
+let loginComponent;
+
+class LoginPage {
+	constructor(webdriver, driver, waitTimeout = 10000, logger) {
+		loginComponent = new LoginComponent(webdriver, driver, waitTimeout, logger);
 	}
 
-	async fillLoginField(login) {
-		await this.sendKeysWhenEnabledByCss(
-			'#tpaccountId',
-			login,
-			this.waitTimeout
-		);
-	}
-
-	async fillPasswordField(password) {
-		await this.sendKeysWhenEnabledByCss(
-			'#loginpassword',
-			password,
-			this.waitTimeout
-		);
-	}
-
-	async clickLoginButton() {
-		await this.clickWhenClickableByCss('#loginButton');
-	}
-
-	async fillLoginForm() {
-		const login = 'vochshukdaniil@gmail.com';
-		const password = 'fzSr5dq28ZrZMte';
-
-		await this.fillLoginField(login);
-		await this.fillPasswordField(password);
-	}
-
-	async submitLoginForm() {
-		await this.clickLoginButton();
-	}
-
-	async logIntoAccount() {
-		await this.fillLoginForm();
-		await this.submitLoginForm();
+	async loginToAccount() {
+		await loginComponent.openPage();
+		await loginComponent.fillEmailField();
+		await loginComponent.fillPasswordField();
+		await loginComponent.clickLoginButton();
 	}
 }
 
