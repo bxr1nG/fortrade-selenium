@@ -26,8 +26,3 @@ class JSONManager {
 }
 
 module.exports = JSONManager;
-
-// {
-//     "login": "vochshukdaniil@gmail.com",
-//     "password": "fzSr5dq28ZrZMte"
-//   }
